@@ -526,7 +526,7 @@
 
             // Coloca a nota pra dentro do transporte (evitando repetir a mesma NF)
             if(!transpObj.notas.some(n => n.nf === nf)) {
-                transpObj.notas.push({ nf: nf, cliente: cliente, cidade: cidade, peso: peso });
+                transpObj.notas.push({ nf: nf, cliente: cliente, cidade: cidade, peso: peso, st: sRaw });
                 countNFs++;
             }
         });
