@@ -76,8 +76,8 @@
         .badge-pct { padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }
 
         /* MURAL E CARDS */
-        .mural { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; width: 100%; box-sizing: border-box; }
-        .card { background: var(--surface); border-radius: 8px; padding: 15px 10px 10px 10px; border-left: 8px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.08); position: relative; min-height: 140px; display: flex; flex-direction: column; border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        .mural { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 15px; width: 100%; box-sizing: border-box; }
+        .card { background: var(--surface); border-radius: 8px; padding: 20px 15px 15px 15px; border-left: 8px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.08); position: relative; min-height: 200px; display: flex; flex-direction: column; border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
         .card.late { outline: 2px solid var(--alert); }
         
         .card[data-status="Finalizado"] { border-left-color: var(--finalizado); } 
@@ -97,10 +97,9 @@
         .card-tr { font-size: 9px; color: #2196f3; font-weight: 900; text-transform: uppercase; margin-bottom: 3px; display: block; }
         .card-lj { font-size: 11px; font-weight: 700; color: var(--text-main); display: block; margin-top: 2px;}
         .card-lc { font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; }
-        .card-brand { font-size: 10px; font-weight: bold; color: var(--primary); display: block; margin-bottom: 2px; }
-        .card-time { font-size: 10px; font-weight: bold; color: #10b981; display: block; margin-bottom: 5px; }
+        .card-time { font-size: 10px; font-weight: bold; color: #10b981; display: block; margin-bottom: 5px; margin-top: 5px; }
         
-        .sel-status { width: 100%; padding: 5px; border-radius: 4px; font-size: 10px; font-weight: bold; border: 1px solid var(--border); cursor: pointer; margin-top: auto; background: var(--input-bg); color: var(--text-strong); }
+        .sel-status { width: 100%; padding: 6px; border-radius: 4px; font-size: 11px; font-weight: bold; border: 1px solid var(--border); cursor: pointer; margin-top: auto; background: var(--input-bg); color: var(--text-strong); }
         .sel-status.st-finalizado { background: var(--finalizado); color: white; }
         
         .badge-info { background: #fff9c4; color: #856404; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 3px; margin-top: 5px; display: inline-block; }
@@ -115,102 +114,27 @@
         .card-note-area { background: #fef3c7; color: #92400e; padding: 6px; font-size: 10px; margin-top: 6px; border-radius: 4px; border: 1px dashed #d97706; display: none; }
         body.dark-mode .card-note-area { background: #451a03; color: #fde68a; border-color: #b45309; }
         .btn-edit-note { background: rgba(0,0,0,0.1); border: none; border-radius: 3px; font-size: 9px; cursor: pointer; margin-top: 5px; padding: 3px; font-weight: bold; color: inherit; width: 100%; }
-
         .hist { font-size: 9px; background: var(--surface-alt); padding: 5px; margin-top: 8px; border-radius: 4px; max-height: 40px; overflow-y: auto; color: var(--text-muted); border: 1px solid var(--border); }
 
-/* ESTILO PARA AS NOTAS AGRUPADAS NO CARD */
-        /* Cards maiores para agrupar transportes */
-.mural { 
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); /* Garante cards mais largos */
-    gap: 15px; 
-}
+        /* ESTILO PARA AS NOTAS AGRUPADAS NO CARD */
+        .grouped-notas { background: var(--surface-alt); border: 1px solid var(--border); border-radius: 6px; margin: 12px 0; max-height: 200px; overflow-y: auto; }
+        .sub-nota-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid var(--border); gap: 10px; transition: all 0.3s ease; border-left: 4px solid transparent; }
+        .sub-nota-row:last-child { border-bottom: none; }
+        .sub-info { font-size: 11px; flex: 2; line-height: 1.3; }
 
-.card { 
-    min-height: 250px; /* Aumentado */
-    padding: 20px;
-}
+        .sel-sub-st { flex: 1; padding: 4px; font-size: 10px; font-weight: bold; border-radius: 4px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text-strong); cursor: pointer; }
+        
+        .sub-nota-row[data-status="Finalizado"] { border-left-color: #2e7d32; background: rgba(46, 125, 50, 0.1); }
+        .sub-nota-row[data-status="Em rota"] { border-left-color: #1565c0; background: rgba(21, 101, 192, 0.05); }
+        .sub-nota-row[data-status="Em loja"] { border-left-color: #f59e0b; background: rgba(245, 158, 11, 0.05); }
+        .sub-nota-row[data-status="Reentrega"] { border-left-color: #fdd835; background: rgba(253, 216, 53, 0.05); }
+        .sub-nota-row[data-status="Atrasado"] { border-left-color: #c62828; background: rgba(198, 40, 40, 0.05); }
 
-/* Estilo da mini-tabela de notas dentro do card */
-.grouped-notas {
-    background: var(--surface-alt);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    margin: 12px 0;
-    max-height: 200px; 
-    overflow-y: auto;
-}
-
-.sub-nota-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px;
-    border-bottom: 1px solid var(--border);
-    gap: 10px;
-}
-
-.sub-nota-row:last-child { border-bottom: none; }
-
-.sub-info { font-size: 11px; flex: 2; line-height: 1.3; }
-
-/* Seletor de status pequeno para cada nota */
-.sel-sub-st {
-    flex: 1;
-    padding: 4px;
-    font-size: 10px;
-    font-weight: bold;
-    border-radius: 4px;
-    border: 1px solid var(--border);
-    background: var(--input-bg);
-    color: var(--text-strong);
-    cursor: pointer;
-}
-
-.sel-sub-st.finalizado { background: #1b5e20; color: white; }
-
-/* Cores dinâmicas para cada nota dentro do transporte */
-.sub-nota-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 10px;
-    border-bottom: 1px solid var(--border);
-    gap: 10px;
-    transition: all 0.3s ease;
-    border-left: 4px solid transparent; /* Barra de cor invisível por padrão */
-}
-
-/* Quando a nota está em diferentes status */
-.sub-nota-row[data-status="Finalizado"] { 
-    border-left-color: #2e7d32; /* Verde */
-    background: rgba(46, 125, 50, 0.1); 
-}
-.sub-nota-row[data-status="Em rota"] { 
-    border-left-color: #1565c0; /* Azul */
-    background: rgba(21, 101, 192, 0.1); 
-}
-.sub-nota-row[data-status="Em loja"] { 
-    border-left-color: #f59e0b; /* Laranja */
-    background: rgba(21, 101, 192, 0.1); 
-}
-.sub-nota-row[data-status="Reentrega"] { 
-    border-left-color: #fdd835; /* Amarelo */
-    background: rgba(21, 101, 192, 0.1); 
-}
-.sub-nota-row[data-status="Atrasado"] { 
-    border-left-color: #c62828; /* Vermelho */
-    background: rgba(198, 40, 40, 0.1); 
-}
-
-        @media (max-width: 1400px) { .mural { grid-template-columns: repeat(4, 1fr); } }
         @media (max-width: 1100px) { .mural { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 768px) { .mural { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
 <div class="header-main">
     <div class="logo">
@@ -218,7 +142,7 @@
         <button class="btn-theme" onclick="toggleTheme()" title="Alternar Tema">🌙</button>
     </div>
     <div class="dashboard">
-        <div class="metric">Total <span id="mTotal">0</span></div>
+        <div class="metric">Total Notas <span id="mTotal">0</span></div>
         <div class="metric">Em Rota <span id="mRota">0</span></div>
         <div class="metric">Finalizadas <span id="mFin">0</span></div>
         <div class="metric alert">Atrasadas <span id="mAtraso">0</span></div>
@@ -267,7 +191,7 @@
 <div id="box-import" style="display:none; background: var(--surface); padding: 20px; border-radius: 10px; border: 2px dashed #3b82f6;">
     <h3 style="margin-top:0; color: var(--text-strong);">📥 Importação Massiva</h3>
     <input type="text" id="impTR" placeholder="Transportadora (Ex: WR, ROTA PREMIUM...)" style="width:100%; margin: 8px 0 15px 0; font-weight: bold; text-transform: uppercase;">
-    <textarea id="impTxt" style="width:100%; height:150px; font-family: monospace; padding: 10px;" placeholder="Cole aqui: NF | LOJA | LOCAL | STATUS"></textarea>
+    <textarea id="impTxt" style="width:100%; height:150px; font-family: monospace; padding: 10px;" placeholder="Cole aqui: Transporte | NF | LOJA | LOCAL | STATUS | PESO"></textarea>
     <div style="display:flex; gap:10px; margin-top: 10px;">
         <button class="btn btn-add" style="flex:1; height:45px;" onclick="processImport('diario')">IMPORTAR P/ DIÁRIO</button>
         <button class="btn btn-add" style="flex:1; height:45px; background:#8b5cf6" onclick="processImport('semanal')">IMPORTAR P/ SEMANAL</button>
@@ -316,18 +240,22 @@
     let dbH = JSON.parse(localStorage.getItem('rda_pro_H')) || []; 
     let currentTab = 'diario';
     
-    // Status que você quer que SEMPRE existam no filtro
+    // Status Base (Os padrões)
     let baseSts = ["(NA BASE)", "Em rota", "Em loja", "Reentrega", "Reagenda", "Nota em comercial", "Sem espaço", "Loja não recebeu", "Agendado", "Finalizado"];
     const SLA = { "Em rota": 5, "Em loja": 2, "Reentrega": 24, "Nota em comercial": 2, "Reagenda": 24, "Loja não recebeu": 24 };
     
     let currentCarrier = 'TODAS';
     let activeFilters = new Set(baseSts);
 
-    // --- FUNÇÃO PARA PEGAR TODOS OS STATUS EXISTENTES NO BANCO ---
+    // FUNÇÃO MASTER: Pega todos os status que já existem no banco pra garantir que nada se perca
     function getTodosOsStatus() {
-        const data = [...dbD, ...dbS]; // Olha tanto no diário quanto semanal
-        const statusNoBanco = data.map(n => n.st);
-        return [...new Set([...baseSts, ...statusNoBanco])];
+        const data = [...dbD, ...dbS]; 
+        let statusNoBanco = [];
+        data.forEach(t => {
+            statusNoBanco.push(t.st); // Status do transporte
+            if(t.notas) t.notas.forEach(n => statusNoBanco.push(n.st)); // Status das notas internas
+        });
+        return [...new Set([...baseSts, ...statusNoBanco])].filter(Boolean); // Filter Boolean remove vazios
     }
 
     function toggleTheme() {
@@ -337,10 +265,7 @@
 
     function init() { 
         if(localStorage.getItem('rda_dark') === 'true') document.body.classList.add('dark-mode');
-        
-        // No início, garante que todos os status conhecidos estejam ativos
         getTodosOsStatus().forEach(st => activeFilters.add(st));
-        
         buildFilterUI(); 
         populateSelects(); 
         document.getElementById('hist-month').value = new Date().toISOString().slice(0, 7);
@@ -354,8 +279,6 @@
         localStorage.setItem('rda_pro_D', JSON.stringify(dbD)); 
         localStorage.setItem('rda_pro_S', JSON.stringify(dbS)); 
         localStorage.setItem('rda_pro_H', JSON.stringify(dbH)); 
-        
-        // Atualiza a interface de filtros e selects sempre que salvar algo novo
         buildFilterUI(); 
         populateSelects();
         render(); 
@@ -384,8 +307,6 @@
                     <div style="border-left:2px solid var(--border); height:15px; margin:0 5px;"></div>`;
         
         lista.forEach(st => {
-            // Se um status NOVO aparecer no banco e não estiver no Set, a gente marca ele por padrão
-            // Mas só fazemos isso se ele não for um que o usuário desmarcou manualmente
             let isChecked = activeFilters.has(st) ? 'checked' : '';
             html += `<label><input type="checkbox" class="chk-filter" value="${st}" ${isChecked} onchange="updateFilters()"> ${st}</label>`;
         });
@@ -395,17 +316,14 @@
     function toggleAllFilters(state) {
         const lista = getTodosOsStatus();
         document.querySelectorAll('.chk-filter').forEach(chk => chk.checked = state);
-        if(state) lista.forEach(st => activeFilters.add(st));
-        else activeFilters.clear();
+        if(state) lista.forEach(st => activeFilters.add(st)); else activeFilters.clear();
         render();
     }
 
     function updateFilters() {
         activeFilters.clear();
-        document.querySelectorAll('.chk-filter').forEach(chk => { 
-            if(chk.checked) activeFilters.add(chk.value); 
-        });
-        render(); // Aqui só renderiza os cards, sem reconstruir os botões de filtro
+        document.querySelectorAll('.chk-filter').forEach(chk => { if(chk.checked) activeFilters.add(chk.value); });
+        render(); 
     }
 
     function setTab(t) {
@@ -474,66 +392,92 @@
     }
 
     function processImport(target) {
-    const rawText = document.getElementById('impTxt').value.trim();
-    const transpNome = (document.getElementById('impTR').value.trim() || 'DIVERSOS').toUpperCase();
-    if(!rawText) return alert("Cole os dados primeiro!");
-    
-    const lines = rawText.split(/\r?\n/);
-    const dataTarget = target === 'diario' ? dbD : dbS;
-    let countNFs = 0;
-    let countTransp = 0;
-
-    lines.forEach(line => {
-        // Ignora linha vazia e a linha de cabeçalho
-        if(!line.trim() || line.toUpperCase().includes('TRANSPORTE\t')) return; 
+        const rawText = document.getElementById('impTxt').value.trim();
+        const transpNome = (document.getElementById('impTR').value.trim() || 'DIVERSOS').toUpperCase();
+        if(!rawText) return alert("Cole os dados primeiro!");
         
-        let cols = line.split(/\t|;|  +/);
-        
-        // Lendo na ordem da foto: Transporte(0) | NF(1) | Cliente(2) | Cidade(3) | Status(4) | Peso(5)
-        let idTransp = cols[0] ? cols[0].trim().replace(/'/g, "") : '';
-        let nf = cols[1] ? cols[1].trim() : '';
-        let cliente = cols[2] ? cols[2].trim() : 'LOJA';
-        let cidade = cols[3] ? cols[3].trim() : '-';
-        // Ajuste no status lido
-        let sRaw = cols[4] ? cols[4].trim() : "(NA BASE)";
-        let peso = cols[5] ? cols[5].trim() : '0';
+        const lines = rawText.split(/\r?\n/);
+        const dataTarget = target === 'diario' ? dbD : dbS;
+        let countNFs = 0;
+        let countTransp = 0;
 
-        if(!idTransp && nf) idTransp = 'AVULSA_' + nf;
-        if(!idTransp && !nf) return; 
+        // Lista mestra para conferir erros de digitação na planilha
+        const statusConhecidos = getTodosOsStatus();
 
-        if(sRaw.toLowerCase() === "entregue") sRaw = "Finalizado";
-        if(sRaw !== "" && !activeFilters.has(sRaw)) { activeFilters.add(sRaw); }
+        lines.forEach(line => {
+            if(!line.trim() || line.toUpperCase().includes('TRANSPORTE\t')) return; 
+            
+            let cols = line.split(/\t|;|  +/);
+            let idTransp = cols[0] ? cols[0].trim().replace(/'/g, "") : '';
+            let nf = cols[1] ? cols[1].trim() : '';
+            let cliente = cols[2] ? cols[2].trim() : 'LOJA';
+            let cidade = cols[3] ? cols[3].trim() : '-';
+            let peso = cols[5] ? cols[5].trim() : '0';
+            
+            // Tratamento Avançado de Status
+            let sRaw = cols[4] ? cols[4].trim() : "(NA BASE)";
+            let sLower = sRaw.toLowerCase();
+            
+            if (sLower === "entregue" || sLower === "finalizado") {
+                sRaw = "Finalizado";
+            } else {
+                // Procura se existe um status parecido (ignora maiúsculas/minúsculas)
+                let match = statusConhecidos.find(s => s.toLowerCase() === sLower);
+                if (match) {
+                    sRaw = match; // Usa o padrão exato que já existe no sistema
+                } else {
+                    // Se for novo, deixa com a primeira letra maiúscula
+                    sRaw = sRaw.charAt(0).toUpperCase() + sRaw.slice(1);
+                }
+            }
 
-        let transpObj = dataTarget.find(t => t.id === idTransp);
+            if(!idTransp && nf) idTransp = 'AVULSA_' + nf;
+            if(!idTransp && !nf) return; 
 
-        if(!transpObj) {
-            transpObj = { 
-                id: idTransp, 
-                isGroup: true, 
-                nf: `Transp: ${idTransp}`, 
-                tr: transpNome, 
-                lj: "Múltiplos Clientes", 
-                lc: "Múltiplas Cidades", 
-                st: sRaw, 
-                obs: "", extraNote: "", prio: 2, start: Date.now(), end: null, hist: [], 
-                notas: [] 
-            };
-            dataTarget.push(transpObj);
-            countTransp++;
-        }
+            if(sRaw !== "" && !activeFilters.has(sRaw)) { activeFilters.add(sRaw); }
 
-        if(!transpObj.notas.some(n => n.nf === nf)) {
-            // AQUI O STATUS DA NOTA É DEFINIDO COM O QUE VEIO DO EXCEL
-            transpObj.notas.push({ nf: nf, cliente: cliente, cidade: cidade, peso: peso, st: sRaw });
-            countNFs++;
-        }
-    });
+            let transpObj = dataTarget.find(t => t.id === idTransp);
 
-    save(); 
-    alert(`${countNFs} Notas agrupadas em ${countTransp} Transportes!`); 
-    document.getElementById('impTxt').value = ""; 
-    setTab(target);
-}
+            if(!transpObj) {
+                transpObj = { 
+                    id: idTransp, 
+                    isGroup: true, 
+                    nf: `Transp: ${idTransp}`, 
+                    tr: transpNome, 
+                    lj: "Múltiplos Clientes", 
+                    lc: "Múltiplas Cidades", 
+                    st: sRaw, // Assume provisoriamente o status da primeira nota
+                    obs: "", extraNote: "", prio: 2, start: Date.now(), end: null, hist: [], 
+                    notas: [] 
+                };
+                dataTarget.push(transpObj);
+                countTransp++;
+            }
+
+            if(!transpObj.notas.some(n => n.nf === nf)) {
+                transpObj.notas.push({ nf: nf, cliente: cliente, cidade: cidade, peso: peso, st: sRaw });
+                countNFs++;
+            }
+        });
+
+        // REVISÃO FINAL AUTOMÁTICA DOS TRANSPORTES
+        // Se todas as notas importadas dentro do transporte forem Finalizadas, o transporte fecha.
+        dataTarget.forEach(t => {
+            if (t.isGroup && t.notas.length > 0) {
+                const todasFin = t.notas.every(n => n.st === 'Finalizado');
+                if (todasFin) {
+                    t.st = 'Finalizado';
+                    if(!t.end) t.end = Date.now();
+                }
+            }
+        });
+
+        save(); 
+        alert(`${countNFs} Notas agrupadas em ${countTransp} Transportes!`); 
+        document.getElementById('impTxt').value = ""; 
+        setTab(target);
+    }
+
     function addManual() {
         let nf = document.getElementById('inNF').value;
         if(!nf || getDB().some(n => n.nf == nf)) return alert("Nota inválida ou repetida!");
@@ -547,49 +491,30 @@
         note.hist.push({ de: note.st, para: newST, hora: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) });
         note.st = newST;
         if(newST === 'Finalizado') note.end = Date.now(); else note.end = null;
-
-        if (newST === "Agendado" || newST === "Reagenda") {
-            let dataAgt = prompt("Qual a data do agendamento/reagenda? (Ex: 12/04)");
-            if(dataAgt) note.obs = "📅 " + dataAgt;
-        } else if (newST === "Loja não recebeu") {
-            let dataHora = prompt("Informe o dia e hora: (Ex: 10/04 às 14:30)");
-            if(dataHora) note.obs = "❌ " + dataHora;
-        } else if(["Em loja", "Descarregando", "Finalizado", "Nota em comercial"].includes(newST)) {
-            let promptMsg = newST === "Em loja" ? "Qual o horário de chegada?" : "Horário ou Observação (Opcional):";
-            let obs = prompt(promptMsg);
-            if(obs) note.obs = "🕒 " + obs;
-        }
         save();
     }
 
-function changeSubST(transpId, nf, newST) {
-    const data = getDB();
-    const transp = data.find(t => t.id == transpId);
-    if (!transp) return;
+    function changeSubST(transpId, nf, newST) {
+        const data = getDB();
+        const transp = data.find(t => t.id == transpId);
+        if (!transp) return;
 
-    const nota = transp.notas.find(n => n.nf == nf);
-    if (nota) {
-        nota.st = newST; // Atualiza o status da nota específica
-        
-        // MÁGICA AQUI: Verifica se TODAS as notas do transporte estão 'Finalizado'
-        const todasFinalizadas = transp.notas.every(n => n.st === 'Finalizado');
-        
-        if (todasFinalizadas) {
-            // Se todas estiverem finalizadas, o transporte inteiro é finalizado
-            transp.st = 'Finalizado';
-            if(!transp.end) transp.end = Date.now(); // Marca a hora de finalização
-        } else {
-            // Se alguém mudar uma nota de volta para "Em rota", o transporte reabre
-            if (transp.st === 'Finalizado') {
+        const nota = transp.notas.find(n => n.nf == nf);
+        if (nota) {
+            nota.st = newST; 
+            const todasFinalizadas = transp.notas.every(n => n.st === 'Finalizado');
+            
+            if (todasFinalizadas) {
+                transp.st = 'Finalizado';
+                if(!transp.end) transp.end = Date.now(); 
+            } else if (transp.st === 'Finalizado') {
                 transp.st = 'Em rota'; 
                 transp.end = null;
             }
+            save();
         }
-        
-        save();
-        render(); // ATUALIZA A TELA NA HORA! Isso faz as cores piscarem instantaneamente.
     }
-}
+
     function togglePrio(id) { let n = getDB().find(x => x.id == id); n.prio = n.prio === 3 ? 1 : n.prio + 1; save(); }
     function delNote(id) { if(confirm("Apagar nota definitivamente?")) { if(currentTab==='diario') dbD=dbD.filter(n=>n.id!=id); else dbS=dbS.filter(n=>n.id!=id); save(); } }
     
@@ -651,13 +576,12 @@ function changeSubST(transpId, nf, newST) {
         const reportDiv = document.getElementById('report-content');
         if(dataToAnalyze.length === 0) { reportDiv.innerHTML = "<p style='padding:20px'>Nenhuma nota para o relatório.</p>"; return; }
         
-        let allUniqueStatuses = [...new Set(baseSts)];
+        let allUniqueStatuses = getTodosOsStatus();
         const stats = {};
 
         dataToAnalyze.forEach(n => {
             if(!stats[n.tr]) { stats[n.tr] = { total: 0 }; allUniqueStatuses.forEach(s => stats[n.tr][s] = 0); }
             
-            // Se tiver notas dentro do transporte, conta cada uma
             if(n.notas && n.notas.length > 0) {
                 n.notas.forEach(nota => {
                     stats[n.tr].total++;
@@ -670,7 +594,6 @@ function changeSubST(transpId, nf, newST) {
             }
         });
         
-        // ... (o resto da função que monta a tabela HTML continua igual)
         let html = `<table class="data-table"><thead><tr><th class="text-left">Transportadora</th><th>Total NF</th>`;
         allUniqueStatuses.forEach(s => { html += `<th>% ${s}</th>`; });
         html += `</tr></thead><tbody>`;
@@ -678,7 +601,8 @@ function changeSubST(transpId, nf, newST) {
             let total = stats[tr].total;
             html += `<tr><td class="text-left">${tr}</td><td>${total}</td>`;
             allUniqueStatuses.forEach(s => {
-                let count = stats[tr][s]; let pct = ((count / total) * 100).toFixed(1);
+                let count = stats[tr][s] || 0; 
+                let pct = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
                 html += `<td>${count} <br> <span class="badge-pct" style="background:var(--surface-alt); border:1px solid var(--border); color:var(--text-main)">${pct}%</span></td>`;
             });
             html += `</tr>`;
@@ -687,153 +611,152 @@ function changeSubST(transpId, nf, newST) {
     }
 
     function render() {
-    const mural = document.getElementById('mural');
-    const searchTxt = document.getElementById('search').value.toLowerCase();
-    const prioFilter = document.getElementById('filter-prio').value;
-    const data = getDB();
-    
-    const filtered = data.filter(n => {
-        let matchesSearch = (n.nf && n.nf.toLowerCase().includes(searchTxt)) || 
-                            (n.lj && n.lj.toLowerCase().includes(searchTxt)) ||
-                            (n.id && n.id.toString().toLowerCase().includes(searchTxt));
+        const mural = document.getElementById('mural');
+        const searchTxt = document.getElementById('search').value.toLowerCase();
+        const prioFilter = document.getElementById('filter-prio').value;
+        const data = getDB();
         
-        if(!matchesSearch && n.notas && n.notas.length > 0) {
-            matchesSearch = n.notas.some(nota => 
-                nota.nf.toLowerCase().includes(searchTxt) ||
-                nota.cliente.toLowerCase().includes(searchTxt) ||
-                nota.cidade.toLowerCase().includes(searchTxt)
-            );
-        }
-        let matchesCarrier = currentCarrier === 'TODAS' || n.tr === currentCarrier;
-        let matchesStatus = activeFilters.has(n.st);
-        let matchesPrio = prioFilter === 'ALL' || (n.prio || 2).toString() === prioFilter;
-        return matchesSearch && matchesCarrier && matchesStatus && matchesPrio;
-    });
-
-    // --- CONTAGEM INDIVIDUAL POR NOTA ---
-    let nTotal = 0, nFinalizadas = 0, nEmRota = 0, nAtrasadas = 0;
-
-    filtered.forEach(n => {
-        if(n.notas && n.notas.length > 0) {
-            n.notas.forEach(nota => {
-                nTotal++;
-                if(nota.st === 'Finalizado') nFinalizadas++;
-                else {
-                    if(nota.st === 'Em rota') nEmRota++;
-                    if(isLate(n)) nAtrasadas++;
-                }
-            });
-        } else {
-            nTotal++;
-            if(n.st === 'Finalizado') nFinalizadas++;
-            else {
-                if(n.st === 'Em rota') nEmRota++;
-                if(isLate(n)) nAtrasadas++;
-            }
-        }
-    });
-
-    document.getElementById('mTotal').innerText = nTotal;
-    document.getElementById('mRota').innerText = nEmRota;
-    document.getElementById('mFin').innerText = nFinalizadas;
-    document.getElementById('mAtraso').innerText = nAtrasadas;
-
-    mural.innerHTML = "";
-    filtered.forEach(n => {
-        const div = document.createElement('div');
-        div.className = `card ${isLate(n) ? 'late' : ''}`;
-        div.setAttribute('data-status', n.st);
-        let htmlHist = n.hist?.length > 0 ? `<div class="hist">${n.hist.map(h => `<b>${h.hora}</b>: ${h.de} ➔ ${h.para}`).join('<br>')}</div>` : '';
+        // Pega ABSOLUTAMENTE TODOS os status do sistema para o dropdown (Impede o erro do NA BASE)
+        const todosStatusCadastrados = getTodosOsStatus();
         
-        let stsDisponiveis = [...new Set([...baseSts, n.st])];
-        let btnMoveHtml = currentTab === 'diario' ? `<button class="btn-move" onclick="moveToSemanal('${n.id}')" title="Mover para Semanal">📅</button>` : '';
-
-        let notasHtml = '';
-        let headerTitle = n.isGroup ? `🚚 TRANSP: ${n.id}` : `NF: ${n.nf}`;
-        let pesoTotal = 0;
-        let finalizadasNoTransporte = 0; // Nova variável
-
-        // Lógica de isolamento na pesquisa
-        let notasParaMostrar = [];
-        if (n.notas && n.notas.length > 0) {
-            if (searchTxt) {
-                // Se houver pesquisa, mostra só as notas que combinam
-                notasParaMostrar = n.notas.filter(nota => 
+        const filtered = data.filter(n => {
+            let matchesSearch = (n.nf && n.nf.toLowerCase().includes(searchTxt)) || 
+                                (n.lj && n.lj.toLowerCase().includes(searchTxt)) ||
+                                (n.id && n.id.toString().toLowerCase().includes(searchTxt));
+            
+            if(!matchesSearch && n.notas && n.notas.length > 0) {
+                matchesSearch = n.notas.some(nota => 
                     nota.nf.toLowerCase().includes(searchTxt) ||
                     nota.cliente.toLowerCase().includes(searchTxt) ||
-                    nota.cidade.toLowerCase().includes(searchTxt) ||
-                    n.id.toString().toLowerCase().includes(searchTxt) // Inclui as notas se a pesquisa for o transporte
+                    nota.cidade.toLowerCase().includes(searchTxt)
                 );
+            }
+            let matchesCarrier = currentCarrier === 'TODAS' || n.tr === currentCarrier;
+            let matchesStatus = activeFilters.has(n.st);
+            let matchesPrio = prioFilter === 'ALL' || (n.prio || 2).toString() === prioFilter;
+            return matchesSearch && matchesCarrier && matchesStatus && matchesPrio;
+        });
+
+        // Contagem Individual
+        let nTotal = 0, nFinalizadas = 0, nEmRota = 0, nAtrasadas = 0;
+
+        filtered.forEach(n => {
+            if(n.notas && n.notas.length > 0) {
+                n.notas.forEach(nota => {
+                    nTotal++;
+                    if(nota.st === 'Finalizado') nFinalizadas++;
+                    else {
+                        if(nota.st === 'Em rota') nEmRota++;
+                        if(isLate(n)) nAtrasadas++;
+                    }
+                });
             } else {
-                notasParaMostrar = n.notas; // Se não, mostra todas
+                nTotal++;
+                if(n.st === 'Finalizado') nFinalizadas++;
+                else {
+                    if(n.st === 'Em rota') nEmRota++;
+                    if(isLate(n)) nAtrasadas++;
+                }
             }
-        }
+        });
 
-        if(notasParaMostrar.length > 0) {
-            notasHtml += `<div class="grouped-notas">`;
+        document.getElementById('mTotal').innerText = nTotal;
+        document.getElementById('mRota').innerText = nEmRota;
+        document.getElementById('mFin').innerText = nFinalizadas;
+        document.getElementById('mAtraso').innerText = nAtrasadas;
+
+        mural.innerHTML = "";
+        filtered.forEach(n => {
+            const div = document.createElement('div');
+            div.className = `card ${isLate(n) ? 'late' : ''}`;
+            div.setAttribute('data-status', n.st);
+            let htmlHist = n.hist?.length > 0 ? `<div class="hist">${n.hist.map(h => `<b>${h.hora}</b>: ${h.de} ➔ ${h.para}`).join('<br>')}</div>` : '';
             
-            // Loop para contagem global do card (para o cabeçalho) independente da pesquisa
-            if(n.notas && n.notas.length > 0){
-                 n.notas.forEach(nota => {
-                     let p = parseFloat(nota.peso.replace(',', '.')); 
-                     if(!isNaN(p)) pesoTotal += p;
-                     if(nota.st === 'Finalizado') finalizadasNoTransporte++;
-                 });
+            let btnMoveHtml = currentTab === 'diario' ? `<button class="btn-move" onclick="moveToSemanal('${n.id}')" title="Mover para Semanal">📅</button>` : '';
+
+            let notasHtml = '';
+            let headerTitle = n.isGroup ? `🚚 TRANSP: ${n.id}` : `NF: ${n.nf}`;
+            let pesoTotal = 0;
+            let finalizadasNoTransporte = 0;
+
+            let notasParaMostrar = [];
+            if (n.notas && n.notas.length > 0) {
+                if (searchTxt) {
+                    notasParaMostrar = n.notas.filter(nota => 
+                        nota.nf.toLowerCase().includes(searchTxt) ||
+                        nota.cliente.toLowerCase().includes(searchTxt) ||
+                        nota.cidade.toLowerCase().includes(searchTxt) ||
+                        n.id.toString().toLowerCase().includes(searchTxt)
+                    );
+                } else {
+                    notasParaMostrar = n.notas;
+                }
             }
 
-            // Loop para exibição (apenas as pesquisadas, ou todas se não houver pesquisa)
-            notasParaMostrar.forEach(nota => {
-                const selectedHtml = baseSts.map(s => {
-                    const isSelected = (nota.st === s) ? 'selected' : '';
-                    return `<option value="${s}" ${isSelected}>${s}</option>`;
-                }).join('');
+            if(notasParaMostrar.length > 0) {
+                notasHtml += `<div class="grouped-notas">`;
+                
+                // Contagem total do card
+                if(n.notas && n.notas.length > 0){
+                     n.notas.forEach(nota => {
+                         let p = parseFloat(nota.peso.replace(',', '.')); 
+                         if(!isNaN(p)) pesoTotal += p;
+                         if(nota.st === 'Finalizado') finalizadasNoTransporte++;
+                     });
+                }
 
-                notasHtml += `
-                    <div class="sub-nota-row" data-status="${nota.st}">
-                        <div class="sub-info">
-                            <b>NF: ${nota.nf}</b><br>
-                            ${nota.cliente} | ${nota.cidade} | ${nota.peso}kg
-                        </div>
-                        <select class="sel-sub-st" onchange="changeSubST('${n.id}', '${nota.nf}', this.value)">
-                            ${selectedHtml}
-                        </select>
-                    </div>`;
-            });
-            
-            notasHtml += `</div>`;
-        }
+                notasParaMostrar.forEach(nota => {
+                    // MÁGICA 2: A lista de options puxa de 'todosStatusCadastrados' e não só dos baseSts
+                    const selectedHtml = todosStatusCadastrados.map(s => {
+                        const isSelected = (nota.st === s) ? 'selected' : '';
+                        return `<option value="${s}" ${isSelected}>${s}</option>`;
+                    }).join('');
 
-        // InfoExtra atualizada com as finalizadas
-        let infoExtra = n.isGroup ? `<span class="card-lj">📦 ${n.notas.length} Notas | ✅ ${finalizadasNoTransporte} Fin. | ⚖️ ${pesoTotal.toFixed(2)} kg</span>` : `<span class="card-lj">🏪 ${n.lj}</span><span class="card-lc">📍 ${n.lc}</span>`;
+                    notasHtml += `
+                        <div class="sub-nota-row" data-status="${nota.st}">
+                            <div class="sub-info">
+                                <b>NF: ${nota.nf}</b><br>
+                                ${nota.cliente} | ${nota.cidade} | ${nota.peso}kg
+                            </div>
+                            <select class="sel-sub-st" onchange="changeSubST('${n.id}', '${nota.nf}', this.value)">
+                                ${selectedHtml}
+                            </select>
+                        </div>`;
+                });
+                
+                notasHtml += `</div>`;
+            }
 
-        let idDOM = String(n.id).replace(/[^a-zA-Z0-9]/g, '_');
+            let infoExtra = n.isGroup ? `<span class="card-lj">📦 ${n.notas.length} Notas | ✅ ${finalizadasNoTransporte} Fin. | ⚖️ ${pesoTotal.toFixed(2)} kg</span>` : `<span class="card-lj">🏪 ${n.lj}</span><span class="card-lc">📍 ${n.lc}</span>`;
 
-        div.innerHTML = `
-            <div class="priority p${n.prio || 2}" onclick="togglePrio('${n.id}')" title="Mudar Prioridade">P${n.prio || 2}</div>
-            ${btnMoveHtml}
-            <button class="btn-note" onclick="toggleNoteArea('${idDOM}')" title="Anotações Extras">📝</button>
-            <button class="btn-del" onclick="delNote('${n.id}')" title="Apagar definitivamente">✖</button>
-            <span class="card-tr">🚚 ${n.tr || 'DIVERSOS'}</span>
-            
-            <span class="card-nf">${headerTitle}</span>
-            ${infoExtra}
-            ${notasHtml}
-            <span class="card-time">⏱️ Tempo: ${formatElapsedTime(n.start, n.end)}</span>
-            
-            <div class="card-note-area" id="note-area-${idDOM}">
-                <span style="display:block; margin-bottom:4px;">${n.extraNote || 'Nenhuma anotação oculta.'}</span>
-                <button class="btn-edit-note" onclick="editExtraNote('${n.id}')">✏️ Editar Anotação</button>
-            </div>
+            let idDOM = String(n.id).replace(/[^a-zA-Z0-9]/g, '_');
 
-            <select class="sel-status ${n.st==='Finalizado'?'st-finalizado':''}" onchange="changeST('${n.id}', this.value)">
-                ${stsDisponiveis.map(s => `<option value="${s}" ${n.st === s ? 'selected' : ''}>${s}</option>`).join('')}
-            </select>
-            ${n.obs ? `<div class="badge-info">${n.obs}</div>` : ''}
-            ${htmlHist}
-        `;
-        mural.appendChild(div);
-    });
-}
+            div.innerHTML = `
+                <div class="priority p${n.prio || 2}" onclick="togglePrio('${n.id}')" title="Mudar Prioridade">P${n.prio || 2}</div>
+                ${btnMoveHtml}
+                <button class="btn-note" onclick="toggleNoteArea('${idDOM}')" title="Anotações Extras">📝</button>
+                <button class="btn-del" onclick="delNote('${n.id}')" title="Apagar definitivamente">✖</button>
+                <span class="card-tr">🚚 ${n.tr || 'DIVERSOS'}</span>
+                
+                <span class="card-nf">${headerTitle}</span>
+                ${infoExtra}
+                ${notasHtml}
+                <span class="card-time">⏱️ Tempo: ${formatElapsedTime(n.start, n.end)}</span>
+                
+                <div class="card-note-area" id="note-area-${idDOM}">
+                    <span style="display:block; margin-bottom:4px;">${n.extraNote || 'Nenhuma anotação oculta.'}</span>
+                    <button class="btn-edit-note" onclick="editExtraNote('${n.id}')">✏️ Editar Anotação</button>
+                </div>
+
+                <select class="sel-status ${n.st==='Finalizado'?'st-finalizado':''}" onchange="changeST('${n.id}', this.value)">
+                    ${todosStatusCadastrados.map(s => `<option value="${s}" ${n.st === s ? 'selected' : ''}>${s}</option>`).join('')}
+                </select>
+                ${n.obs ? `<div class="badge-info">${n.obs}</div>` : ''}
+                ${htmlHist}
+            `;
+            mural.appendChild(div);
+        });
+    }
 
     function toExcel() { 
         let exportData = [];
