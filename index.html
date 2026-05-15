@@ -251,15 +251,14 @@
     let currentCarrier = 'TODAS';
     let activeFilters = new Set(baseSts);
 
-    // FUNÇÃO MASTER: Pega todos os status que já existem no banco pra garantir que nada se perca
     function getTodosOsStatus() {
         const data = [...dbD, ...dbS]; 
         let statusNoBanco = [];
         data.forEach(t => {
-            statusNoBanco.push(t.st); // Status do transporte
-            if(t.notas) t.notas.forEach(n => statusNoBanco.push(n.st)); // Status das notas internas
+            statusNoBanco.push(t.st);
+            if(t.notas) t.notas.forEach(n => statusNoBanco.push(n.st));
         });
-        return [...new Set([...baseSts, ...statusNoBanco])].filter(Boolean); // Filter Boolean remove vazios
+        return [...new Set([...baseSts, ...statusNoBanco])].filter(Boolean);
     }
 
     function toggleTheme() {
@@ -351,30 +350,41 @@
 
     function setCarrier(c) {
         currentCarrier = c;
-        document.querySelectorAll('.btn-carrier').forEach(b => { b.classList.toggle('active', b.innerText === c); });
+        document.querySelectorAll('.btn-carrier').forEach(b => { 
+            b.classList.toggle('active', b.innerText === c); 
+        });
+        
+        const filterPrio = document.getElementById('filter-prio');
+        const filterVarejo = document.getElementById('filter-varejo');
+        
+        if(c === 'VAREJO') {
+            if(filterPrio) filterPrio.style.display = 'none';
+            if(filterVarejo) filterVarejo.style.display = 'block';
+        } else {
+            if(filterPrio) filterPrio.style.display = 'block';
+            if(filterVarejo) filterVarejo.style.display = 'none';
+        }
+        
         render();
     }
 
-    function setCarrier(c) {
-    currentCarrier = c;
-    document.querySelectorAll('.btn-carrier').forEach(b => { 
-        b.classList.toggle('active', b.innerText === c); 
-    });
-    
-    // Lógica para alternar visibilidade dos filtros
-    const filterPrio = document.getElementById('filter-prio');
-    const filterVarejo = document.getElementById('filter-varejo');
-    
-    if(c === 'VAREJO') {
-        if(filterPrio) filterPrio.style.display = 'none';
-        if(filterVarejo) filterVarejo.style.display = 'block';
-    } else {
-        if(filterPrio) filterPrio.style.display = 'block';
-        if(filterVarejo) filterVarejo.style.display = 'none';
+    function toggleClearMenu() {
+        const menu = document.getElementById('clear-menu');
+        if (!menu) return;
+        const isVisible = menu.style.display === 'flex';
+        menu.style.display = isVisible ? 'none' : 'flex';
+
+        if (!isVisible) {
+            setTimeout(() => {
+                window.onclick = function(event) {
+                    if (!event.target.matches('.btn-clean') && !menu.contains(event.target)) {
+                        menu.style.display = 'none';
+                        window.onclick = null;
+                    }
+                };
+            }, 100);
+        }
     }
-    
-    render();
-}
 
     function executeClear(type) {
         let dbCurrent = getDB();
@@ -411,7 +421,7 @@
         }
     }
 
-   function processImport(target) {
+    function processImport(target) {
         const rawText = document.getElementById('impTxt').value.trim();
         const transpNome = (document.getElementById('impTR').value.trim() || 'DIVERSOS').toUpperCase();
         if(!rawText) return alert("Cole os dados primeiro!");
@@ -420,7 +430,7 @@
         const dataTarget = target === 'diario' ? dbD : dbS;
         let countNFs = 0;
         let countTransp = 0;
-        let countAtualizadas = 0; // Novo contador para atualizações em massa
+        let countAtualizadas = 0;
 
         const statusConhecidos = getTodosOsStatus();
 
@@ -451,21 +461,20 @@
 
             if(sRaw !== "" && !activeFilters.has(sRaw)) { activeFilters.add(sRaw); }
 
-            // --- NOVA LÓGICA: ATUALIZAÇÃO EM MASSA ---
             let foundExisting = false;
             
-            // Procura a nota em todos os transportes para ver se ela já existe
+            // Procura a nota para ATUALIZAÇÃO EM MASSA
             dataTarget.forEach(t => {
                 if (t.isGroup && t.notas) {
                     let existingNota = t.notas.find(n => n.nf === nf);
                     if (existingNota) {
                         if (existingNota.st !== sRaw) {
-                            existingNota.st = sRaw; // Atualiza o status
+                            existingNota.st = sRaw;
                             countAtualizadas++;
                         }
                         foundExisting = true;
                     }
-                } else if (t.nf === nf) { // Caso seja nota avulsa antiga
+                } else if (t.nf === nf) {
                     if (t.st !== sRaw) {
                         t.st = sRaw;
                         countAtualizadas++;
@@ -474,12 +483,10 @@
                 }
             });
 
-            // Se a nota JÁ EXISTE, a gente pula o resto e vai pra próxima linha
-            if (foundExisting) return;
-            // ------------------------------------------
+            if (foundExisting) return; // Se já existe e atualizou, vai para a próxima linha do excel
 
-            // Se não existe, cria normalmente
             let transpObj = dataTarget.find(t => t.id === idTransp);
+
             if(!transpObj) {
                 transpObj = { 
                     id: idTransp, isGroup: true, nf: `Transp: ${idTransp}`, tr: transpNome, subTr: subTransp,
@@ -496,7 +503,6 @@
             }
         });
 
-        // REVISÃO FINAL AUTOMÁTICA DOS TRANSPORTES
         dataTarget.forEach(t => {
             if (t.isGroup && t.notas.length > 0) {
                 const todasFin = t.notas.every(n => n.st === 'Finalizado');
@@ -504,32 +510,14 @@
                     t.st = 'Finalizado';
                     if(!t.end) t.end = Date.now();
                 } else if (t.st === 'Finalizado') {
-                    t.st = 'Em rota'; // Reabre se tivermos atualizado alguma nota para não finalizada
+                    t.st = 'Em rota'; 
                     t.end = null;
                 }
             }
         });
 
         save(); 
-        alert(`${countNFs} Novas Notas | ${countTransp} Novos Transportes | ${countAtualizadas} Notas Atualizadas!`); 
-        document.getElementById('impTxt').value = ""; 
-        setTab(target);
-    }
-
-        // REVISÃO FINAL AUTOMÁTICA DOS TRANSPORTES
-        // Se todas as notas importadas dentro do transporte forem Finalizadas, o transporte fecha.
-        dataTarget.forEach(t => {
-            if (t.isGroup && t.notas.length > 0) {
-                const todasFin = t.notas.every(n => n.st === 'Finalizado');
-                if (todasFin) {
-                    t.st = 'Finalizado';
-                    if(!t.end) t.end = Date.now();
-                }
-            }
-        });
-
-        save(); 
-        alert(`${countNFs} Notas agrupadas em ${countTransp} Transportes!`); 
+        alert(`SUCESSO!\n${countNFs} Novas Notas importadas.\n${countTransp} Novos Transportes criados.\n${countAtualizadas} Notas atualizadas em massa!`); 
         document.getElementById('impTxt').value = ""; 
         setTab(target);
     }
@@ -671,7 +659,6 @@
         const prioSelect = document.getElementById('filter-prio');
         const varejoSelect = document.getElementById('filter-varejo');
         
-        // Proteção contra o "congelamento" - não tem mais variáveis duplicadas aqui!
         if (!mural || !varejoSelect || !prioSelect) return; 
 
         const searchTxt = document.getElementById('search').value.toLowerCase();
@@ -754,7 +741,6 @@
             let pesoTotal = 0;
             let finalizadasNoTransporte = 0;
             
-            // --- LÓGICA DO FILTRO ISOLADO VOLTOU AQUI ---
             let notasParaMostrar = [];
             if (n.notas && n.notas.length > 0) {
                 if (searchTxt) {
@@ -772,14 +758,12 @@
             if (notasParaMostrar.length > 0) {
                 notasHtml += `<div class="grouped-notas">`;
                 
-                // Primeiro conta TUDO do transporte (mesmo o que estiver escondido) para o cabeçalho
                 n.notas.forEach(nota => {
                     let p = parseFloat(nota.peso.toString().replace(',', '.')); 
                     if(!isNaN(p)) pesoTotal += p;
                     if(nota.st === 'Finalizado') finalizadasNoTransporte++;
                 });
 
-                // Agora desenha só as notas que passaram na pesquisa
                 notasParaMostrar.forEach(nota => {
                     const statusOptions = todosStatusCadastrados.map(s => 
                         `<option value="${s}" ${nota.st === s ? 'selected' : ''}>${s}</option>`
@@ -799,7 +783,6 @@
                 notasHtml += `</div>`;
             }
 
-            // O Info extra mostra a quantidade total de notas que a viagem tem, não apenas as pesquisadas
             let infoExtra = n.isGroup 
                 ? `<span class="card-lj">📦 ${n.notas.length} Notas | ✅ ${finalizadasNoTransporte} Fin. | ⚖️ ${pesoTotal.toFixed(2)} kg</span>` 
                 : `<span class="card-lj">🏪 ${n.lj}</span><span class="card-lc">📍 ${n.lc}</span>`;
@@ -832,68 +815,6 @@
             mural.appendChild(div);
         });
     }
-    function toggleClearMenu() {
-        const menu = document.getElementById('clear-menu');
-        const isVisible = menu.style.display === 'flex';
-        
-        menu.style.display = isVisible ? 'none' : 'flex';
-
-        if (!isVisible) {
-            setTimeout(() => {
-                window.onclick = function(event) {
-                    if (!event.target.matches('.btn-clean') && !menu.contains(event.target)) {
-                        menu.style.display = 'none';
-                        window.onclick = null;
-                    }
-                };
-            }, 100);
-        }
-    }
-    function executeClear(type) {
-    let dbCurrent = (currentTab === 'diario') ? dbD : dbS;
-    let nomeAba = currentTab.toUpperCase();
-    document.getElementById('clear-menu').style.display = 'none';
-
-    if (type === 'finalizados') {
-        // Opção: Arquivar só os finalizados
-        const toArchive = dbCurrent.filter(n => n.st === 'Finalizado');
-        if (toArchive.length === 0) return alert("Não há notas 'Finalizadas' para arquivar.");
-
-        if (confirm(`Arquivar ${toArchive.length} notas finalizadas de ${nomeAba}?`)) {
-            toArchive.forEach(n => {
-                n.archivedAt = Date.now();
-                dbH.push(n);
-            });
-            // Remove do banco atual
-            if (currentTab === 'diario') {
-                dbD = dbD.filter(n => n.st !== 'Finalizado');
-            } else {
-                dbS = dbS.filter(n => n.st !== 'Finalizado');
-            }
-            save();
-        }
-
-    } else if (type === 'todos') {
-        // Opção: Arquivar todas as notas (limpa a aba e manda tudo pro histórico)
-        if (dbCurrent.length === 0) return alert("A aba já está vazia.");
-        if (confirm(`Arquivar TODAS as ${dbCurrent.length} notas de ${nomeAba}?`)) {
-            dbCurrent.forEach(n => {
-                n.archivedAt = Date.now();
-                dbH.push(n);
-            });
-            if (currentTab === 'diario') dbD = []; else dbS = [];
-            save();
-        }
-
-    } else if (type === 'apagar') {
-        // Opção: Excluir notas sem histórico (Apaga da tela sem salvar no Histórico)
-        if (dbCurrent.length === 0) return alert("Nada para excluir.");
-        if (confirm(`⚠️ ATENÇÃO: Isso apagará as notas da aba ${nomeAba} DEFINITIVAMENTE sem salvar no histórico. Continuar?`)) {
-            if (currentTab === 'diario') dbD = []; else dbS = [];
-            save();
-        }
-    }
-}
 
     function toExcel() { 
         let exportData = [];
@@ -907,27 +828,6 @@
             }
         });
         const ws = XLSX.utils.json_to_sheet(exportData); 
-        const wb = XLSX.utils.book_new(); 
-        XLSX.utils.book_append_sheet(wb, ws, "Dados"); 
-        XLSX.writeFile(wb, `RDA_${currentTab}.xlsx`); 
-    }
-
-    function toPDF() { 
-        const { jsPDF } = window.jspdf; 
-        const doc = new jsPDF('l'); 
-        let body = [];
-        getDB().forEach(n => {
-            if(n.notas && n.notas.length > 0) {
-                n.notas.forEach(nota => body.push([n.id, n.tr, nota.nf, nota.cliente, nota.cidade, n.st]));
-            } else {
-                body.push(['-', n.tr, n.nf, n.lj, n.lc, n.st]);
-            }
-        });
-        doc.autoTable({ head: [['Transporte', 'Transp', 'NF', 'Loja/Cliente', 'Local', 'Status']], body: body }); 
-        doc.save(`RDA_${currentTab}.pdf`); 
-    }
-
-    init();
-</script>
+        const wb = XLSX
 </body>
 </html>
