@@ -411,7 +411,7 @@
         }
     }
 
-    function processImport(target) {
+   function processImport(target) {
         const rawText = document.getElementById('impTxt').value.trim();
         const transpNome = (document.getElementById('impTR').value.trim() || 'DIVERSOS').toUpperCase();
         if(!rawText) return alert("Cole os dados primeiro!");
@@ -420,8 +420,8 @@
         const dataTarget = target === 'diario' ? dbD : dbS;
         let countNFs = 0;
         let countTransp = 0;
+        let countAtualizadas = 0; // Novo contador para atualizações em massa
 
-        // Lista mestra para conferir erros de digitação na planilha
         const statusConhecidos = getTodosOsStatus();
 
         lines.forEach(line => {
@@ -435,21 +435,15 @@
             let peso = cols[5] ? cols[5].trim() : '0';
             let subTransp = cols[6] ? cols[6].trim().toUpperCase() : '';
             
-            // Tratamento Avançado de Status
             let sRaw = cols[4] ? cols[4].trim() : "(NA BASE)";
             let sLower = sRaw.toLowerCase();
             
             if (sLower === "entregue" || sLower === "finalizado") {
                 sRaw = "Finalizado";
             } else {
-                // Procura se existe um status parecido (ignora maiúsculas/minúsculas)
                 let match = statusConhecidos.find(s => s.toLowerCase() === sLower);
-                if (match) {
-                    sRaw = match; // Usa o padrão exato que já existe no sistema
-                } else {
-                    // Se for novo, deixa com a primeira letra maiúscula
-                    sRaw = sRaw.charAt(0).toUpperCase() + sRaw.slice(1);
-                }
+                if (match) sRaw = match; 
+                else sRaw = sRaw.charAt(0).toUpperCase() + sRaw.slice(1);
             }
 
             if(!idTransp && nf) idTransp = 'AVULSA_' + nf;
@@ -457,20 +451,40 @@
 
             if(sRaw !== "" && !activeFilters.has(sRaw)) { activeFilters.add(sRaw); }
 
-            let transpObj = dataTarget.find(t => t.id === idTransp);
+            // --- NOVA LÓGICA: ATUALIZAÇÃO EM MASSA ---
+            let foundExisting = false;
+            
+            // Procura a nota em todos os transportes para ver se ela já existe
+            dataTarget.forEach(t => {
+                if (t.isGroup && t.notas) {
+                    let existingNota = t.notas.find(n => n.nf === nf);
+                    if (existingNota) {
+                        if (existingNota.st !== sRaw) {
+                            existingNota.st = sRaw; // Atualiza o status
+                            countAtualizadas++;
+                        }
+                        foundExisting = true;
+                    }
+                } else if (t.nf === nf) { // Caso seja nota avulsa antiga
+                    if (t.st !== sRaw) {
+                        t.st = sRaw;
+                        countAtualizadas++;
+                    }
+                    foundExisting = true;
+                }
+            });
 
+            // Se a nota JÁ EXISTE, a gente pula o resto e vai pra próxima linha
+            if (foundExisting) return;
+            // ------------------------------------------
+
+            // Se não existe, cria normalmente
+            let transpObj = dataTarget.find(t => t.id === idTransp);
             if(!transpObj) {
                 transpObj = { 
-                    id: idTransp, 
-                    isGroup: true, 
-                    nf: `Transp: ${idTransp}`, 
-                    tr: transpNome, 
-                    subTr: subTransp,
-                    lj: "Múltiplos Clientes", 
-                    lc: "Múltiplas Cidades", 
-                    st: sRaw, // Assume provisoriamente o status da primeira nota
-                    obs: "", extraNote: "", prio: 2, start: Date.now(), end: null, hist: [], 
-                    notas: [] 
+                    id: idTransp, isGroup: true, nf: `Transp: ${idTransp}`, tr: transpNome, subTr: subTransp,
+                    lj: "Múltiplos Clientes", lc: "Múltiplas Cidades", st: sRaw, 
+                    obs: "", extraNote: "", prio: 2, start: Date.now(), end: null, hist: [], notas: [] 
                 };
                 dataTarget.push(transpObj);
                 countTransp++;
@@ -481,6 +495,26 @@
                 countNFs++;
             }
         });
+
+        // REVISÃO FINAL AUTOMÁTICA DOS TRANSPORTES
+        dataTarget.forEach(t => {
+            if (t.isGroup && t.notas.length > 0) {
+                const todasFin = t.notas.every(n => n.st === 'Finalizado');
+                if (todasFin) {
+                    t.st = 'Finalizado';
+                    if(!t.end) t.end = Date.now();
+                } else if (t.st === 'Finalizado') {
+                    t.st = 'Em rota'; // Reabre se tivermos atualizado alguma nota para não finalizada
+                    t.end = null;
+                }
+            }
+        });
+
+        save(); 
+        alert(`${countNFs} Novas Notas | ${countTransp} Novos Transportes | ${countAtualizadas} Notas Atualizadas!`); 
+        document.getElementById('impTxt').value = ""; 
+        setTab(target);
+    }
 
         // REVISÃO FINAL AUTOMÁTICA DOS TRANSPORTES
         // Se todas as notas importadas dentro do transporte forem Finalizadas, o transporte fecha.
@@ -633,177 +667,188 @@
     }
 
     function render() {
-    const mural = document.getElementById('mural');
-    const varejoSelect = document.getElementById('filter-varejo');
-    const prioSelect = document.getElementById('filter-prio');
-
-    // 1. Verificação de segurança (Impede que o código trave se os elementos não existirem)
-    if (!mural || !varejoSelect || !prioSelect) return;
-
-    // 2. Captura dos valores atuais dos filtros
-    const searchTxt = document.getElementById('search').value.toLowerCase();
-    const prioFilter = prioSelect.value;
-    const varejoFilter = varejoSelect.value; 
-    
-    // 3. Busca os dados do banco
-    const data = getDB();
-    
-    const todosStatusCadastrados = getTodosOsStatus();
-    
-    // Atualiza opções do seletor de varejo se necessário
-    const varejoSelect = document.getElementById('filter-varejo');
-    if (currentCarrier === 'VAREJO' && varejoSelect) {
-        const parceiros = [...new Set(data.filter(n => n.tr === 'VAREJO' && n.subTr).map(n => n.subTr))];
-        varejoSelect.innerHTML = '<option value="ALL">Todas Transp. Varejo</option>' + 
-                                 parceiros.map(p => `<option value="${p}">${p}</option>`).join('');
-        if (parceiros.includes(varejoFilter)) varejoSelect.value = varejoFilter;
-    }
-    
-    const filtered = data.filter(n => {
-        let matchesSearch = (n.nf && n.nf.toLowerCase().includes(searchTxt)) || 
-                            (n.lj && n.lj.toLowerCase().includes(searchTxt)) ||
-                            (n.id && n.id.toString().toLowerCase().includes(searchTxt));
+        const mural = document.getElementById('mural');
+        const prioSelect = document.getElementById('filter-prio');
+        const varejoSelect = document.getElementById('filter-varejo');
         
-        if(!matchesSearch && n.notas && n.notas.length > 0) {
-            matchesSearch = n.notas.some(nota => 
-                nota.nf.toLowerCase().includes(searchTxt) ||
-                nota.cliente.toLowerCase().includes(searchTxt) ||
-                nota.cidade.toLowerCase().includes(searchTxt)
-            );
-        }
-        let matchesCarrier = currentCarrier === 'TODAS' || n.tr === currentCarrier;
-        let matchesStatus = activeFilters.has(n.st);
-        let matchesPrio = true;
-        let matchesVarejo = true;
+        // Proteção contra o "congelamento" - não tem mais variáveis duplicadas aqui!
+        if (!mural || !varejoSelect || !prioSelect) return; 
 
+        const searchTxt = document.getElementById('search').value.toLowerCase();
+        const prioFilter = prioSelect.value;
+        const varejoFilter = varejoSelect.value;
+        const data = getDB();
+        
+        const todosStatusCadastrados = getTodosOsStatus();
+        
         if (currentCarrier === 'VAREJO') {
-            if (varejoFilter !== 'ALL') matchesVarejo = (n.subTr === varejoFilter);
-        } else {
-            matchesPrio = prioFilter === 'ALL' || (n.prio || 2).toString() === prioFilter;
+            const parceiros = [...new Set(data.filter(n => n.tr === 'VAREJO' && n.subTr).map(n => n.subTr))];
+            varejoSelect.innerHTML = '<option value="ALL">Todas Transp. Varejo</option>' + 
+                                     parceiros.map(p => `<option value="${p}">${p}</option>`).join('');
+            if (parceiros.includes(varejoFilter)) varejoSelect.value = varejoFilter;
         }
-        return matchesSearch && matchesCarrier && matchesStatus && matchesPrio && matchesVarejo;
-    });
+        
+        const filtered = data.filter(n => {
+            let matchesSearch = (n.nf && n.nf.toLowerCase().includes(searchTxt)) || 
+                                (n.lj && n.lj.toLowerCase().includes(searchTxt)) ||
+                                (n.id && n.id.toString().toLowerCase().includes(searchTxt));
+            
+            if(!matchesSearch && n.notas && n.notas.length > 0) {
+                matchesSearch = n.notas.some(nota => 
+                    nota.nf.toLowerCase().includes(searchTxt) ||
+                    nota.cliente.toLowerCase().includes(searchTxt) ||
+                    nota.cidade.toLowerCase().includes(searchTxt)
+                );
+            }
+            let matchesCarrier = currentCarrier === 'TODAS' || n.tr === currentCarrier;
+            let matchesStatus = activeFilters.has(n.st);
+            let matchesPrio = true;
+            let matchesVarejo = true;
 
-    // Atualização das métricas do Dashboard
-    let nTotal = 0, nFinalizadas = 0, nEmRota = 0, nAtrasadas = 0;
-    filtered.forEach(n => {
-        if(n.notas && n.notas.length > 0) {
-            n.notas.forEach(nota => {
+            if (currentCarrier === 'VAREJO') {
+                if (varejoFilter !== 'ALL') matchesVarejo = (n.subTr === varejoFilter);
+            } else {
+                matchesPrio = prioFilter === 'ALL' || (n.prio || 2).toString() === prioFilter;
+            }
+            return matchesSearch && matchesCarrier && matchesStatus && matchesPrio && matchesVarejo;
+        });
+
+        let nTotal = 0, nFinalizadas = 0, nEmRota = 0, nAtrasadas = 0;
+        filtered.forEach(n => {
+            if(n.notas && n.notas.length > 0) {
+                n.notas.forEach(nota => {
+                    nTotal++;
+                    if(nota.st === 'Finalizado') nFinalizadas++;
+                    else {
+                        if(nota.st === 'Em rota') nEmRota++;
+                        if(isLate(n)) nAtrasadas++;
+                    }
+                });
+            } else {
                 nTotal++;
-                if(nota.st === 'Finalizado') nFinalizadas++;
+                if(n.st === 'Finalizado') nFinalizadas++;
                 else {
-                    if(nota.st === 'Em rota') nEmRota++;
+                    if(n.st === 'Em rota') nEmRota++;
                     if(isLate(n)) nAtrasadas++;
                 }
-            });
-        } else {
-            nTotal++;
-            if(n.st === 'Finalizado') nFinalizadas++;
-            else {
-                if(n.st === 'Em rota') nEmRota++;
-                if(isLate(n)) nAtrasadas++;
             }
-        }
-    });
+        });
 
-    document.getElementById('mTotal').innerText = nTotal;
-    document.getElementById('mRota').innerText = nEmRota;
-    document.getElementById('mFin').innerText = nFinalizadas;
-    document.getElementById('mAtraso').innerText = nAtrasadas;
+        document.getElementById('mTotal').innerText = nTotal;
+        document.getElementById('mRota').innerText = nEmRota;
+        document.getElementById('mFin').innerText = nFinalizadas;
+        document.getElementById('mAtraso').innerText = nAtrasadas;
 
-    mural.innerHTML = "";
-    filtered.forEach(n => {
-        const div = document.createElement('div');
-        div.className = `card ${isLate(n) ? 'late' : ''}`;
-        div.setAttribute('data-status', n.st);
+        mural.innerHTML = "";
+        filtered.forEach(n => {
+            const div = document.createElement('div');
+            div.className = `card ${isLate(n) ? 'late' : ''}`;
+            div.setAttribute('data-status', n.st);
 
-        // Lógica de exibição do nome da transportadora (Corrigido para fora da string)
-        let displayTr = (n.tr === 'VAREJO' && n.subTr) ? `VAREJO - ${n.subTr}` : (n.tr || 'DIVERSOS');
-        
-        let htmlHist = n.hist?.length > 0 ? `<div class="hist">${n.hist.map(h => `<b>${h.hora}</b>: ${h.de} ➔ ${h.para}`).join('<br>')}</div>` : '';
-        let btnMoveHtml = currentTab === 'diario' ? `<button class="btn-move" onclick="moveToSemanal('${n.id}')" title="Mover para Semanal">📅</button>` : '';
+            let displayTr = (n.tr === 'VAREJO' && n.subTr) ? `VAREJO - ${n.subTr}` : (n.tr || 'DIVERSOS');
+            let htmlHist = n.hist?.length > 0 ? `<div class="hist">${n.hist.map(h => `<b>${h.hora}</b>: ${h.de} ➔ ${h.para}`).join('<br>')}</div>` : '';
+            let btnMoveHtml = currentTab === 'diario' ? `<button class="btn-move" onclick="moveToSemanal('${n.id}')" title="Mover para Semanal">📅</button>` : '';
 
-        let notasHtml = '';
-        let headerTitle = n.isGroup ? `🚚 TRANSP: ${n.id}` : `NF: ${n.nf}`;
-        let pesoTotal = 0;
-        let finalizadasNoTransporte = 0;
-
-        if (n.notas && n.notas.length > 0) {
-            notasHtml += `<div class="grouped-notas">`;
-            n.notas.forEach(nota => {
-                let p = parseFloat(nota.peso.toString().replace(',', '.')); 
-                if(!isNaN(p)) pesoTotal += p;
-                if(nota.st === 'Finalizado') finalizadasNoTransporte++;
-
-                const statusOptions = todosStatusCadastrados.map(s => 
-                    `<option value="${s}" ${nota.st === s ? 'selected' : ''}>${s}</option>`
-                ).join('');
-
-                notasHtml += `
-                    <div class="sub-nota-row" data-status="${nota.st}">
-                        <div class="sub-info">
-                            <b>NF: ${nota.nf}</b><br>
-                            ${nota.cliente} | ${nota.cidade} | ${nota.peso}kg
-                        </div>
-                        <select class="sel-sub-st" onchange="changeSubST('${n.id}', '${nota.nf}', this.value)">
-                            ${statusOptions}
-                        </select>
-                    </div>`;
-            });
-            notasHtml += `</div>`;
-        }
-
-        let infoExtra = n.isGroup 
-            ? `<span class="card-lj">📦 ${n.notas.length} Notas | ✅ ${finalizadasNoTransporte} Fin. | ⚖️ ${pesoTotal.toFixed(2)} kg</span>` 
-            : `<span class="card-lj">🏪 ${n.lj}</span><span class="card-lc">📍 ${n.lc}</span>`;
-
-        let idDOM = String(n.id).replace(/[^a-zA-Z0-9]/g, '_');
-
-        div.innerHTML = `
-            <div class="priority p${n.prio || 2}" onclick="togglePrio('${n.id}')" title="Mudar Prioridade">P${n.prio || 2}</div>
-            ${btnMoveHtml}
-            <button class="btn-note" onclick="toggleNoteArea('${idDOM}')" title="Anotações Extras">📝</button>
-            <button class="btn-del" onclick="delNote('${n.id}')" title="Apagar definitivamente">✖</button>
+            let notasHtml = '';
+            let headerTitle = n.isGroup ? `🚚 TRANSP: ${n.id}` : `NF: ${n.nf}`;
+            let pesoTotal = 0;
+            let finalizadasNoTransporte = 0;
             
-            <div style="font-size: 10px; color: var(--text-muted); font-weight: bold;">${displayTr}</div>
-            <span class="card-nf">${headerTitle}</span>
-            ${infoExtra}
-            ${notasHtml}
-            <span class="card-time">⏱️ Tempo: ${formatElapsedTime(n.start, n.end)}</span>
-            
-            <div class="card-note-area" id="note-area-${idDOM}" style="display:none;">
-                <span style="display:block; margin-bottom:4px;">${n.extraNote || 'Nenhuma anotação.'}</span>
-                <button class="btn-edit-note" onclick="editExtraNote('${n.id}')">✏️ Editar</button>
-            </div>
-
-            <select class="sel-status ${n.st==='Finalizado'?'st-finalizado':''}" onchange="changeST('${n.id}', this.value)">
-                ${todosStatusCadastrados.map(s => `<option value="${s}" ${n.st === s ? 'selected' : ''}>${s}</option>`).join('')}
-            </select>
-            ${n.obs ? `<div class="badge-info">${n.obs}</div>` : ''}
-            ${htmlHist}
-        `;
-        mural.appendChild(div);
-    });
-}
-    function toggleClearMenu() {
-    const menu = document.getElementById('clear-menu');
-    const isVisible = menu.style.display === 'flex';
-    
-    // Inverte a visibilidade
-    menu.style.display = isVisible ? 'none' : 'flex';
-
-    // Fecha o menu se clicar fora dele
-    if (!isVisible) {
-        setTimeout(() => {
-            window.onclick = function(event) {
-                if (!event.target.matches('.btn-clean') && !menu.contains(event.target)) {
-                    menu.style.display = 'none';
-                    window.onclick = null;
+            // --- LÓGICA DO FILTRO ISOLADO VOLTOU AQUI ---
+            let notasParaMostrar = [];
+            if (n.notas && n.notas.length > 0) {
+                if (searchTxt) {
+                    notasParaMostrar = n.notas.filter(nota => 
+                        nota.nf.toLowerCase().includes(searchTxt) ||
+                        nota.cliente.toLowerCase().includes(searchTxt) ||
+                        nota.cidade.toLowerCase().includes(searchTxt) ||
+                        n.id.toString().toLowerCase().includes(searchTxt)
+                    );
+                } else {
+                    notasParaMostrar = n.notas;
                 }
-            };
-        }, 100);
+            }
+
+            if (notasParaMostrar.length > 0) {
+                notasHtml += `<div class="grouped-notas">`;
+                
+                // Primeiro conta TUDO do transporte (mesmo o que estiver escondido) para o cabeçalho
+                n.notas.forEach(nota => {
+                    let p = parseFloat(nota.peso.toString().replace(',', '.')); 
+                    if(!isNaN(p)) pesoTotal += p;
+                    if(nota.st === 'Finalizado') finalizadasNoTransporte++;
+                });
+
+                // Agora desenha só as notas que passaram na pesquisa
+                notasParaMostrar.forEach(nota => {
+                    const statusOptions = todosStatusCadastrados.map(s => 
+                        `<option value="${s}" ${nota.st === s ? 'selected' : ''}>${s}</option>`
+                    ).join('');
+
+                    notasHtml += `
+                        <div class="sub-nota-row" data-status="${nota.st}">
+                            <div class="sub-info">
+                                <b>NF: ${nota.nf}</b><br>
+                                ${nota.cliente} | ${nota.cidade} | ${nota.peso}kg
+                            </div>
+                            <select class="sel-sub-st" onchange="changeSubST('${n.id}', '${nota.nf}', this.value)">
+                                ${statusOptions}
+                            </select>
+                        </div>`;
+                });
+                notasHtml += `</div>`;
+            }
+
+            // O Info extra mostra a quantidade total de notas que a viagem tem, não apenas as pesquisadas
+            let infoExtra = n.isGroup 
+                ? `<span class="card-lj">📦 ${n.notas.length} Notas | ✅ ${finalizadasNoTransporte} Fin. | ⚖️ ${pesoTotal.toFixed(2)} kg</span>` 
+                : `<span class="card-lj">🏪 ${n.lj}</span><span class="card-lc">📍 ${n.lc}</span>`;
+
+            let idDOM = String(n.id).replace(/[^a-zA-Z0-9]/g, '_');
+
+            div.innerHTML = `
+                <div class="priority p${n.prio || 2}" onclick="togglePrio('${n.id}')" title="Mudar Prioridade">P${n.prio || 2}</div>
+                ${btnMoveHtml}
+                <button class="btn-note" onclick="toggleNoteArea('${idDOM}')" title="Anotações Extras">📝</button>
+                <button class="btn-del" onclick="delNote('${n.id}')" title="Apagar definitivamente">✖</button>
+                
+                <div style="font-size: 10px; color: var(--text-muted); font-weight: bold;">${displayTr}</div>
+                <span class="card-nf">${headerTitle}</span>
+                ${infoExtra}
+                ${notasHtml}
+                <span class="card-time">⏱️ Tempo: ${formatElapsedTime(n.start, n.end)}</span>
+                
+                <div class="card-note-area" id="note-area-${idDOM}" style="display:none;">
+                    <span style="display:block; margin-bottom:4px;">${n.extraNote || 'Nenhuma anotação.'}</span>
+                    <button class="btn-edit-note" onclick="editExtraNote('${n.id}')">✏️ Editar</button>
+                </div>
+
+                <select class="sel-status ${n.st==='Finalizado'?'st-finalizado':''}" onchange="changeST('${n.id}', this.value)">
+                    ${todosStatusCadastrados.map(s => `<option value="${s}" ${n.st === s ? 'selected' : ''}>${s}</option>`).join('')}
+                </select>
+                ${n.obs ? `<div class="badge-info">${n.obs}</div>` : ''}
+                ${htmlHist}
+            `;
+            mural.appendChild(div);
+        });
     }
-}
+    function toggleClearMenu() {
+        const menu = document.getElementById('clear-menu');
+        const isVisible = menu.style.display === 'flex';
+        
+        menu.style.display = isVisible ? 'none' : 'flex';
+
+        if (!isVisible) {
+            setTimeout(() => {
+                window.onclick = function(event) {
+                    if (!event.target.matches('.btn-clean') && !menu.contains(event.target)) {
+                        menu.style.display = 'none';
+                        window.onclick = null;
+                    }
+                };
+            }, 100);
+        }
+    }
     function executeClear(type) {
     let dbCurrent = (currentTab === 'diario') ? dbD : dbS;
     let nomeAba = currentTab.toUpperCase();
