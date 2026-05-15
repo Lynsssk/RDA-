@@ -817,42 +817,38 @@
     }
 
     function toExcel() { 
-    let exportData = [];
-
-    getDB().forEach(n => {
-        if(n.notas && n.notas.length > 0) {
-            n.notas.forEach(nota => {
-                exportData.push({
-                    "Transporte": n.id,
-                    "Transportadora": n.tr,
-                    "NF": nota.nf,
-                    "Cliente": nota.cliente,
-                    "Cidade": nota.cidade,
-                    "Status": nota.st,
-                    "Peso": nota.peso
+        let exportData = [];
+        getDB().forEach(n => {
+            if(n.notas && n.notas.length > 0) {
+                n.notas.forEach(nota => {
+                    exportData.push({ "Transporte": n.id, "Transportadora": n.tr, "NF": nota.nf, "Cliente": nota.cliente, "Cidade": nota.cidade, "Status Transp.": n.st, "Peso": nota.peso });
                 });
-            });
-        } else {
-            exportData.push({
-                "Transporte": "-",
-                "Transportadora": n.tr,
-                "NF": n.nf,
-                "Cliente": n.lj,
-                "Cidade": n.lc,
-                "Status": n.st,
-                "Peso": "-"
-            });
-        }
-    });
+            } else {
+                exportData.push({ "Transporte": "-", "Transportadora": n.tr, "NF": n.nf, "Cliente": n.lj, "Cidade": n.lc, "Status Transp.": n.st, "Peso": "-" });
+            }
+        });
+        const ws = XLSX.utils.json_to_sheet(exportData); 
+        const wb = XLSX.utils.book_new(); 
+        XLSX.utils.book_append_sheet(wb, ws, "Dados"); 
+        XLSX.writeFile(wb, `RDA_${currentTab}.xlsx`); 
+    }
 
-    const ws = XLSX.utils.json_to_sheet(exportData);
-    const wb = XLSX.utils.book_new();
+    function toPDF() { 
+        const { jsPDF } = window.jspdf; 
+        const doc = new jsPDF('l'); 
+        let body = [];
+        getDB().forEach(n => {
+            if(n.notas && n.notas.length > 0) {
+                n.notas.forEach(nota => body.push([n.id, n.tr, nota.nf, nota.cliente, nota.cidade, n.st]));
+            } else {
+                body.push(['-', n.tr, n.nf, n.lj, n.lc, n.st]);
+            }
+        });
+        doc.autoTable({ head: [['Transporte', 'Transp', 'NF', 'Loja/Cliente', 'Local', 'Status']], body: body }); 
+        doc.save(`RDA_${currentTab}.pdf`); 
+    }
 
-    XLSX.utils.book_append_sheet(wb, ws, "Notas");
-    XLSX.writeFile(wb, "RDA_Logistics.xlsx");
-}
-
-init();
+    init();
 </script>
 </body>
 </html>
