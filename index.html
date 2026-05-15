@@ -634,9 +634,18 @@
 
     function render() {
     const mural = document.getElementById('mural');
+    const varejoSelect = document.getElementById('filter-varejo');
+    const prioSelect = document.getElementById('filter-prio');
+
+    // 1. Verificação de segurança (Impede que o código trave se os elementos não existirem)
+    if (!mural || !varejoSelect || !prioSelect) return;
+
+    // 2. Captura dos valores atuais dos filtros
     const searchTxt = document.getElementById('search').value.toLowerCase();
-    const prioFilter = document.getElementById('filter-prio').value;
-    const varejoFilter = document.getElementById('filter-varejo').value;
+    const prioFilter = prioSelect.value;
+    const varejoFilter = varejoSelect.value; 
+    
+    // 3. Busca os dados do banco
     const data = getDB();
     
     const todosStatusCadastrados = getTodosOsStatus();
@@ -775,6 +784,70 @@
         `;
         mural.appendChild(div);
     });
+}
+    function toggleClearMenu() {
+    const menu = document.getElementById('clear-menu');
+    const isVisible = menu.style.display === 'flex';
+    
+    // Inverte a visibilidade
+    menu.style.display = isVisible ? 'none' : 'flex';
+
+    // Fecha o menu se clicar fora dele
+    if (!isVisible) {
+        setTimeout(() => {
+            window.onclick = function(event) {
+                if (!event.target.matches('.btn-clean') && !menu.contains(event.target)) {
+                    menu.style.display = 'none';
+                    window.onclick = null;
+                }
+            };
+        }, 100);
+    }
+}
+    function executeClear(type) {
+    let dbCurrent = (currentTab === 'diario') ? dbD : dbS;
+    let nomeAba = currentTab.toUpperCase();
+    document.getElementById('clear-menu').style.display = 'none';
+
+    if (type === 'finalizados') {
+        // Opção: Arquivar só os finalizados
+        const toArchive = dbCurrent.filter(n => n.st === 'Finalizado');
+        if (toArchive.length === 0) return alert("Não há notas 'Finalizadas' para arquivar.");
+
+        if (confirm(`Arquivar ${toArchive.length} notas finalizadas de ${nomeAba}?`)) {
+            toArchive.forEach(n => {
+                n.archivedAt = Date.now();
+                dbH.push(n);
+            });
+            // Remove do banco atual
+            if (currentTab === 'diario') {
+                dbD = dbD.filter(n => n.st !== 'Finalizado');
+            } else {
+                dbS = dbS.filter(n => n.st !== 'Finalizado');
+            }
+            save();
+        }
+
+    } else if (type === 'todos') {
+        // Opção: Arquivar todas as notas (limpa a aba e manda tudo pro histórico)
+        if (dbCurrent.length === 0) return alert("A aba já está vazia.");
+        if (confirm(`Arquivar TODAS as ${dbCurrent.length} notas de ${nomeAba}?`)) {
+            dbCurrent.forEach(n => {
+                n.archivedAt = Date.now();
+                dbH.push(n);
+            });
+            if (currentTab === 'diario') dbD = []; else dbS = [];
+            save();
+        }
+
+    } else if (type === 'apagar') {
+        // Opção: Excluir notas sem histórico (Apaga da tela sem salvar no Histórico)
+        if (dbCurrent.length === 0) return alert("Nada para excluir.");
+        if (confirm(`⚠️ ATENÇÃO: Isso apagará as notas da aba ${nomeAba} DEFINITIVAMENTE sem salvar no histórico. Continuar?`)) {
+            if (currentTab === 'diario') dbD = []; else dbS = [];
+            save();
+        }
+    }
 }
 
     function toExcel() { 
