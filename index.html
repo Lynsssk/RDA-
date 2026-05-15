@@ -817,17 +817,42 @@
     }
 
     function toExcel() { 
-        let exportData = [];
-        getDB().forEach(n => {
-            if(n.notas && n.notas.length > 0) {
-                n.notas.forEach(nota => {
-                    exportData.push({ "Transporte": n.id, "Transportadora": n.tr, "NF": nota.nf, "Cliente": nota.cliente, "Cidade": nota.cidade, "Status Transp.": n.st, "Peso": nota.peso });
+    let exportData = [];
+
+    getDB().forEach(n => {
+        if(n.notas && n.notas.length > 0) {
+            n.notas.forEach(nota => {
+                exportData.push({
+                    "Transporte": n.id,
+                    "Transportadora": n.tr,
+                    "NF": nota.nf,
+                    "Cliente": nota.cliente,
+                    "Cidade": nota.cidade,
+                    "Status": nota.st,
+                    "Peso": nota.peso
                 });
-            } else {
-                exportData.push({ "Transporte": "-", "Transportadora": n.tr, "NF": n.nf, "Cliente": n.lj, "Cidade": n.lc, "Status Transp.": n.st, "Peso": "-" });
-            }
-        });
-        const ws = XLSX.utils.json_to_sheet(exportData); 
-        const wb = XLSX
+            });
+        } else {
+            exportData.push({
+                "Transporte": "-",
+                "Transportadora": n.tr,
+                "NF": n.nf,
+                "Cliente": n.lj,
+                "Cidade": n.lc,
+                "Status": n.st,
+                "Peso": "-"
+            });
+        }
+    });
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(wb, ws, "Notas");
+    XLSX.writeFile(wb, "RDA_Logistics.xlsx");
+}
+
+init();
+</script>
 </body>
 </html>
